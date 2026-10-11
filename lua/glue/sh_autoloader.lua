@@ -1,9 +1,8 @@
 Glue = Glue or {}
 
-Glue.LoadedFiles = {}
-Glue.LoadedModules = {}
-Glue.LoadedLibs = {}
-Glue.LoadedHooks = {}
+Glue.LoadedFiles = Glue.LoadedFiles or {}
+Glue.LoadedModules = Glue.LoadedModules or {}
+Glue.LoadedLibs = Glue.LoadedLibs or {}
 
 --- Safely includes a Lua file and logs any runtime errors without stopping execution.
 --- @param path string The path to the Lua file to include.
@@ -36,13 +35,19 @@ function Glue.LoadFile(path)
             AddCSLuaFile(path)
             return true
         end
+        
+        return Glue.ExitCodes.UNKNOWN_PREFIX
     end
 
     if CLIENT then
+        if string.StartsWith(fileName, "sv_") then
+            return Glue.ExitCodes.SKIPPED
+        end
+
         if string.StartsWith(fileName, "cl_") or string.StartsWith(fileName, "sh_") then
             return safeInclude(path)
         end
-    end
 
-    return false
+        return Glue.ExitCodes.UNKNOWN_PREFIX
+    end
 end

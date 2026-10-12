@@ -18,22 +18,36 @@ local function safeInclude(path)
     return true
 end
 
+--- Loads a Lua file based on its filename prefix and the current realm.
+--- On the server, `sv_` files are included, `sh_` files are sent to clients and included,
+--- and `cl_` files are sent to clients without being included. On the client, `sv_` files
+--- are skipped, while `sh_` and `cl_` files are included. Include errors are logged.
+--- @param path string The path to the Lua file to load.
+--- @return number exitCode an exit code indicating success, failure, a skipped file, or an unknown prefix.
 function Glue.LoadFile(path)
     local fileName = string.GetFileFromFilename(path)
 
     if SERVER then
         if string.StartsWith(fileName, "sv_") then
-            return safeInclude(path)
+            if safeInclude(path) then
+                return Glue.ExitCodes.SUCCESS
+            else
+                return Glue.ExitCodes.FAILED
+            end
         end
 
         if string.StartsWith(fileName, "sh_") then
             AddCSLuaFile(path)
-            return safeInclude(path)
+            if safeInclude(path) then
+                return Glue.ExitCodes.SUCCESS
+            else
+                return Glue.ExitCodes.FAILED
+            end
         end
 
         if string.StartsWith(fileName, "cl_") then
             AddCSLuaFile(path)
-            return true
+            return Glue.ExitCodes.SUCCESS
         end
         
         return Glue.ExitCodes.UNKNOWN_PREFIX
@@ -45,7 +59,11 @@ function Glue.LoadFile(path)
         end
 
         if string.StartsWith(fileName, "cl_") or string.StartsWith(fileName, "sh_") then
-            return safeInclude(path)
+            if safeInclude(path) then
+                return Glue.ExitCodes.SUCCESS
+            else
+                return Glue.ExitCodes.FAILED
+            end
         end
 
         return Glue.ExitCodes.UNKNOWN_PREFIX

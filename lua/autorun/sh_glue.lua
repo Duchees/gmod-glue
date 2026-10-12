@@ -4,7 +4,8 @@ Glue.version = "v0.0.0-pre-alpha"
 Glue.author = "Duchees"
 
 Glue.ExitCodes = {
-    SUCCESS = 0,
+    SUCCESS = true,
+    FAILED = false,
     SKIPPED = 1,
     UNKNOWN_PREFIX = 2,
 }
